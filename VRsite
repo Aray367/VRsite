@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Компьютер құрылғылары - VR сабақ порталы</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-environment-component@1.3.0/dist/aframe-environment-component.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #3949ab;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #bb86fc;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 2rem;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .vr-container {
+            flex: 1;
+            min-width: 300px;
+            height: 600px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            background: #000;
+            position: relative;
+        }
+
+        #ar-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: #6200ee;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            display: none;
+        }
+
+        .content-panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(30, 30, 46, 0.9);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .device-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .device-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .device-card:hover {
+            transform: translateY(-5px);
+            border-color: #bb86fc;
+            background: rgba(187, 134, 252, 0.1);
+        }
+
+        .device-card.active {
+            border-color: #03dac6;
+            background: rgba(3, 218, 198, 0.1);
+        }
+
+        .device-card h3 {
+            color: #bb86fc;
+            margin-bottom: 0.5rem;
+        }
+
+        .device-card p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .device-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #3949ab;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .mode-btn:hover {
+            background: rgba(57, 73, 171, 0.5);
+        }
+
+        .mode-btn.active {
+            background: #6200ee;
+            border-color: #bb86fc;
+        }
+
+        .info-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .info-panel h2 {
+            color: #03dac6;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #03dac6;
+            padding-bottom: 0.5rem;
+        }
+
+        .hotspots {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .hotspot {
+            background: rgba(187, 134, 252, 0.2);
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #bb86fc;
+        }
+
+        .hotspot:hover {
+            background: rgba(187, 134, 252, 0.4);
+            transform: scale(1.05);
+        }
+
+        .demo-btn {
+            background: linear-gradient(45deg, #03dac6, #018786);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .demo-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(3, 218, 198, 0.4);
+        }
+
+        .control-panel {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #3949ab;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(57, 73, 171, 0.3);
+        }
+
+        .test-section {
+            background: rgba(30, 30, 46, 0.9);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem;
+            max-width: 800px;
+            margin: 2rem auto;
+        }
+
+        .question {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border-left: 4px solid #bb86fc;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .option {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option:hover {
+            background: rgba(187, 134, 252, 0.2);
+        }
+
+        .option.selected {
+            background: rgba(3, 218, 198, 0.3);
+            border: 2px solid #03dac6;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            margin-top: 3rem;
+            border-top: 2px solid #3949ab;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            .vr-container {
+                height: 400px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            color: #bb86fc;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Компьютер құрылғылары - VR сабақ порталы</h1>
+        <p>Бұл портал арқылы компьютер құрылғыларын 3D түрде, VR очкисі бар/жоқ жағдайда зерттеңіз</p>
+    </div>
+
+    <div class="mode-selector" style="justify-content: center;">
+        <button class="mode-btn active" onclick="setMode('view')">Көрініс режимі</button>
+        <button class="mode-btn" onclick="setMode('vr')">VR режимі</button>
+        <button class="mode-btn" onclick="setMode('light')">Жеңіл режим</button>
+    </div>
+
+    <div class="container">
+        <div class="vr-container">
+            <a-scene embedded vr-mode-ui="enabled: true" 
+                     loading-screen="dotsColor: #bb86fc; backgroundColor: #000000"
+                     xr-mode-ui="XRMode: vr">
+                <a-entity environment="preset: forest; dressingAmount: 1000; dressingColor: #3949ab"></a-entity>
+                
+                <!-- Камера -->
+                <a-entity id="camera" camera="active: true" position="0 1.6 3" 
+                         look-controls="pointerLockEnabled: true">
+                    <a-cursor fuse="true" fuse-timeout="1000"></a-cursor>
+                </a-entity>
+
+                <!-- Модельдер контейнеры -->
+                <a-entity id="models-container" position="0 1 -4">
+                    <!-- Тінтуір -->
+                    <a-entity id="mouse-model" class="device-model" visible="true" 
+                             position="0 0 0" scale="0.5 0.5 0.5"
+                             animation="property: rotation; to: 0 360 0; loop: true; dur: 20000; easing: linear">
+                        <a-box position="-0.5 0 0" width="1" height="0.2" depth="0.5" 
+                               color="#666666" roughness="0.8">
+                        </a-box>
+                        <a-box position="0.2 0.1 0.15" width="0.3" height="0.05" depth="0.1" 
+                               color="#333333" class="clickable" 
+                               mouseenter="highlightButton" mouseleave="unhighlightButton">
+                        </a-box>
+                        <a-box position="0.2 0.1 -0.15" width="0.3" height="0.05" depth="0.1" 
+                               color="#333333" class="clickable"
+                               mouseenter="highlightButton" mouseleave="unhighlightButton">
+                        </a-box>
+                        <a-cylinder position="-0.7 0.1 0" radius="0.1" height="0.05" 
+                                   color="#444444" rotation="90 0 0" class="scroll-wheel">
+                        </a-cylinder>
+                    </a-entity>
+
+                    <!-- Пернетақта -->
+                    <a-entity id="keyboard-model" class="device-model" visible="false"
+                             position="0 0 0" scale="0.4 0.4 0.4">
+                        <a-box width="1.8" height="0.05" depth="0.6" color="#222222">
+                        </a-box>
+                        <!-- Бірнеше пернелер -->
+                        <a-box position="-0.7 0.05 0.2" width="0.1" height="0.02" depth="0.1" 
+                               color="#333333" class="key" animation__click="property: position; to: -0.7 0.03 0.2; dur: 200; startEvents: click">
+                        </a-box>
+                        <a-box position="-0.5 0.05 0.2" width="0.1" height="0.02" depth="0.1" 
+                               color="#333333" class="key">
+                        </a-box>
+                        <a-box position="0 0.05 0" width="0.2" height="0.02" depth="0.1" 
+                               color="#444444" class="key enter-key">
+                        </a-box>
+                    </a-entity>
+
+                    <!-- Монитор -->
+                    <a-entity id="monitor-model" class="device-model" visible="false"
+                             position="0 0 0" scale="0.6 0.6 0.6">
+                        <a-box width="1.2" height="0.7" depth="0.05" color="#111111">
+                            <a-plane position="0 0 0.03" width="1" height="0.6" color="#0000AA"
+                                    animation="property: material.color; dir: alternate; dur: 2000; from: #0000AA; to: #00AA00">
+                            </a-plane>
+                        </a-box>
+                        <a-box position="0 -0.45 0" width="0.1" height="0.6" depth="0.1" color="#222222">
+                        </a-box>
+                        <a-box position="0 -0.8 0" width="0.4" height="0.1" depth="0.3" color="#333333">
+                        </a-box>
+                    </a-entity>
+                </a-entity>
+
+                <!-- Hotspot элементтері -->
+                <a-entity id="hotspots">
+                    <a-ring id="info-hotspot" radius-inner="0.05" radius-outer="0.07" 
+                           position="1 2 -3" color="#03dac6" 
+                           animation="property: scale; dir: alternate; dur: 1000; from: 1 1 1; to: 1.2 1.2 1.2; loop: true">
+                        <a-text value="i" align="center" position="0 0 0.01" color="#000" width="0.5"></a-text>
+                    </a-ring>
+                </a-entity>
+
+                <!-- Жарық -->
+                <a-light type="ambient" color="#4455AA" intensity="0.4"></a-light>
+                <a-light type="directional" color="#FFFFFF" intensity="0.8" position="-1 3 2"></a-light>
+            </a-scene>
+            <button id="ar-button" onclick="enterVR()">VR режимін іске қосу</button>
+        </div>
+
+        <div class="content-panel">
+            <h2>Компьютер құрылғыларын таңдаңыз:</h2>
+            
+            <div class="device-list">
+                <div class="device-card active" onclick="selectDevice('mouse')">
+                    <div class="device-icon">🖱️</div>
+                    <h3>Тінтуір</h3>
+                    <p>Көрсеткі мен таңдау үшін қолданылатын енгізу құрылғысы</p>
+                </div>
+                
+                <div class="device-card" onclick="selectDevice('keyboard')">
+                    <div class="device-icon">⌨️</div>
+                    <h3>Пернетақта</h3>
+                    <p>Символдарды, командаларды енгізетін құрылғы</p>
+                </div>
+                
+                <div class="device-card" onclick="selectDevice('monitor')">
+                    <div class="device-icon">🖥️</div>
+                    <h3>Монитор</h3>
+                    <p>Ақпарат шығаратын негізгі экран</p>
+                </div>
+                
+                <div class="device-card" onclick="selectDevice('printer')">
+                    <div class="device-icon">🖨️</div>
+                    <h3>Принтер</h3>
+                    <p>Цифрлық құжаттарды қағазға шығарады</p>
+                </div>
+                
+                <div class="device-card" onclick="selectDevice('speaker')">
+                    <div class="device-icon">🔊</div>
+                    <h3>Динамик</h3>
+                    <p>Дыбысты ауаға шығарғыш құрылғы</p>
+                </div>
+                
+                <div class="device-card" onclick="selectDevice('headphones')">
+                    <div class="device-icon">🎧</div>
+                    <h3>Құлаққап</h3>
+                    <p>Жеке тыңдау үшін қолданылады</p>
+                </div>
+            </div>
+
+            <div class="info-panel" id="device-info">
+                <h2 id="device-title">Тінтуір</h2>
+                <p id="device-description">Тінтуір — көрсеткі мен таңдау үшін қолданылатын енгізу құрылғысы. Оң/сол батырмалар және скролл арқылы мәзір таңдау, объектіні жылжыту, екі рет шерту — ашу сияқты әрекеттер орындалады.</p>
+                
+                <div class="control-panel">
+                    <button class="control-btn" onclick="rotateModel()">Айналдыру</button>
+                    <button class="control-btn" onclick="zoomIn()">Үлкейту</button>
+                    <button class="control-btn" onclick="zoomOut()">Кішірейту</button>
+                    <button class="control-btn" onclick="explodeView()">Бөлшектеу</button>
+                </div>
+
+                <h3 style="margin-top: 1.5rem; color: #bb86fc;">Бөліктері:</h3>
+                <div class="hotspots">
+                    <div class="hotspot" onclick="showPartInfo('left-button')">Сол батырма</div>
+                    <div class="hotspot" onclick="showPartInfo('right-button')">Оң батырма</div>
+                    <div class="hotspot" onclick="showPartInfo('scroll-wheel')">Скролл доңғалағы</div>
+                    <div class="hotspot" onclick="showPartInfo('laser')">Лазер нүктесі</div>
+                </div>
+
+                <button class="demo-btn" onclick="playDemo()">Демонстрацияны көрсету</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section" id="test-section" style="display: none;">
+        <h2>Білімді тексеру</h2>
+        <div class="question">
+            <p>Тінтуірдің негізгі функциясы қандай?</p>
+            <div class="options">
+                <div class="option" onclick="selectAnswer(this, 0)">Мәтінді теру</div>
+                <div class="option" onclick="selectAnswer(this, 1)">Көрсеткі мен таңдау</div>
+                <div class="option" onclick="selectAnswer(this, 2)">Дыбыс шығару</div>
+            </div>
+        </div>
+        
+        <button class="demo-btn" onclick="submitTest()">Тестті аяқтау</button>
+    </div>
+
+    <div class="footer">
+        <p>VR сабақ порталы - Компьютер құрылғыларын зерттеу</p>
+        <p>© 2024 Білім технологиялары</p>
+    </div>
+
+    <script>
+        // Ағымдағы құрылғыны басқару
+        let currentDevice = 'mouse';
+        let currentMode = 'view';
+        let isExploded = false;
+        let testAnswers = {};
+
+        // Құрылғылар деректері
+        const devices = {
+            mouse: {
+                title: "Тінтуір",
+                description: "Тінтуір — көрсеткі мен таңдау үшін қолданылатын енгізу құрылғысы. Оң/сол батырмалар және скролл арқылы мәзір таңдау, объектіні жылжыту, екі рет шерту — ашу сияқты әрекеттер орындалады.",
+                hotspots: ["Сол батырма", "Оң батырма", "Скролл доңғалағы", "Лазер нүктесі"]
+            },
+            keyboard: {
+                title: "Пернетақта",
+                description: "Пернетақта — символдарды, командаларды енгізетін құрылғы. Әр бір клавишаға қысқаша функция жазылған (Enter — орындау, Shift — бас әріп).",
+                hotspots: ["Function пернелері", "NumPad", "Arrow пернелері", "Enter пернесі"]
+            },
+            monitor: {
+                title: "Монитор",
+                description: "Монитор — ақпарат шығаратын негізгі экран. Резолюция, пиксель, жарықтық түсініктемелері көрсетіледі. Экранда бейне/графика шығу, түс гаммасы өзгеруі.",
+                hotspots: ["Экран", "Тірек", "Порттар", "Түймелер"]
+            },
+            printer: {
+                title: "Принтер",
+                description: "Принтер — цифрлық құжаттарды қағазға шығаратын құрылғы. Түрлері: лазер, сұйық сия. Құжатты қабылдау -> қағаз шығару процесі.",
+                hotspots: ["Қағаз лотогы", "Сия картриджі", "Басу басы", "Шығару лотогы"]
+            },
+            speaker: {
+                title: "Динамик",
+                description: "Динамик — дыбысты ауаға шығарғыш құрылғы. Дыбыс жиілігі мен дыбыс деңгейін көрсету. Қысқа дыбыс ойнату және визуалды көрсеткіш.",
+                hotspots: ["Дыбыс шығарушы", "Көлем реттегіші", "Басқару түймелері", "Байланыс порттары"]
+            },
+            headphones: {
+                title: "Құлаққап",
+                description: "Құлаққап — жеке тыңдау үшін қолданылатын құрылғы, сыртқы дыбысты бөгеу. Stereo/mono айырмашылығы, көлем бақылауы.",
+                hotspots: ["Құлақ аяқшалары", "Микрофон", "Көлем реттегіші", "Байланыс сымдары"]
+            }
+        };
+
+        // Құрылғыны таңдау функциясы
+        function selectDevice(deviceId) {
+            currentDevice = deviceId;
+            
+            // Карточкаларды жаңарту
+            document.querySelectorAll('.device-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Ақпарат панелін жаңарту
+            const device = devices[deviceId];
+            document.getElementById('device-title').textContent = device.title;
+            document.getElementById('device-description').textContent = device.description;
+            
+            // Hotspot жаңарту
+            const hotspotsContainer = document.querySelector('.hotspots');
+            hotspotsContainer.innerHTML = '';
+            device.hotspots.forEach(hotspot => {
+                hotspotsContainer.innerHTML += `<div class="hotspot" onclick="showPartInfo('${hotspot.toLowerCase()}')">${hotspot}</div>`;
+            });
+            
+            // 3D моделді жаңарту
+            update3DModel(deviceId);
+        }
+
+        // 3D моделді жаңарту
+        function update3DModel(deviceId) {
+            // Барлық моделдерді жасыру
+            document.querySelectorAll('.device-model').forEach(model => {
+                model.setAttribute('visible', 'false');
+            });
+            
+            // Таңдалған моделді көрсету
+            const model = document.getElementById(`${deviceId}-model`);
+            if (model) {
+                model.setAttribute('visible', 'true');
+                
+                // Бастапқы масштаб
+                if (deviceId === 'mouse') {
+                    model.setAttribute('scale', '0.5 0.5 0.5');
+                } else if (deviceId === 'keyboard') {
+                    model.setAttribute('scale', '0.4 0.4 0.4');
+                } else if (deviceId === 'monitor') {
+                    model.setAttribute('scale', '0.6 0.6 0.6');
+                }
+                
+                // Бастапқы позицияға қайтару
+                model.setAttribute('position', '0 0 0');
+                model.setAttribute('rotation', '0 0 0');
+                
+                // Анимацияны қосу
+                model.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 20000; easing: linear');
+            }
+        }
+
+        // Режимді орнату
+        function setMode(mode) {
+            currentMode = mode;
+            
+            // Батырмалар жаңарту
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Сценаға әсер ету
+            const scene = document.querySelector('a-scene');
+            if (mode === 'vr') {
+                document.getElementById('ar-button').style.display = 'block';
+                if (scene.hasAttribute('vr-mode-ui')) {
+                    scene.setAttribute('vr-mode-ui', 'enabled: true');
+                }
+            } else {
+                document.getElementById('ar-button').style.display = 'none';
+            }
+            
+            if (mode === 'light') {
+                document.querySelector('a-light[type="ambient"]').setAttribute('intensity', '0.8');
+            } else {
+                document.querySelector('a-light[type="ambient"]').setAttribute('intensity', '0.4');
+            }
+        }
+
+        // VR режимін іске қосу
+        function enterVR() {
+            const scene = document.querySelector('a-scene');
+            if (scene.enterVR) {
+                scene.enterVR();
+            }
+        }
+
+        // Моделді айналдыру
+        function rotateModel() {
+            const model = document.getElementById(`${currentDevice}-model`);
+            if (model) {
+                const currentRotation = model.getAttribute('rotation');
+                const newRotation = {
+                    x: currentRotation.x,
+                    y: currentRotation.y + 90,
+                    z: currentRotation.z
+                };
+                model.setAttribute('animation', `property: rotation; to: ${newRotation.x} ${newRotation.y} ${newRotation.z}; dur: 500; easing: easeInOutQuad`);
+            }
+        }
+
+        // Масштабтау функциялары
+        function zoomIn() {
+            const model = document.getElementById(`${currentDevice}-model`);
+            if (model) {
+                const currentScale = model.getAttribute('scale');
+                const newScale = {
+                    x: currentScale.x * 1.2,
+                    y: currentScale.y * 1.2,
+                    z: currentScale.z * 1.2
+                };
+                model.setAttribute('animation', `property: scale; to: ${newScale.x} ${newScale.y} ${newScale.z}; dur: 300`);
+            }
+        }
+
+        function zoomOut() {
+            const model = document.getElementById(`${currentDevice}-model`);
+            if (model) {
+                const currentScale = model.getAttribute('scale');
+                const newScale = {
+                    x: currentScale.x * 0.8,
+                    y: currentScale.y * 0.8,
+                    z: currentScale.z * 0.8
+                };
+                model.setAttribute('animation', `property: scale; to: ${newScale.x} ${newScale.y} ${newScale.z}; dur: 300`);
+            }
+        }
+
+        // Бөлшектеу көрінісі
+        function explodeView() {
+            const model = document.getElementById(`${currentDevice}-model`);
+            if (!model) return;
+            
+            isExploded = !isExploded;
+            
+            if (isExploded) {
+                // Бөлшектеу анимациясы
+                const parts = model.children;
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i];
+                    const offset = (i + 1) * 0.2;
+                    const targetPos = {
+                        x: part.object3D.position.x + (Math.random() - 0.5) * offset,
+                        y: part.object3D.position.y + (Math.random() - 0.5) * offset,
+                        z: part.object3D.position.z + (Math.random() - 0.5) * offset
+                    };
+                    part.setAttribute('animation', `property: position; to: ${targetPos.x} ${targetPos.y} ${targetPos.z}; dur: 800`);
+                }
+            } else {
+                // Біріктіру анимациясы
+                const parts = model.children;
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i];
+                    const originalPos = getOriginalPosition(currentDevice, i);
+                    part.setAttribute('animation', `property: position; to: ${originalPos.x} ${originalPos.y} ${originalPos.z}; dur: 800`);
+                }
+            }
+        }
+
+        function getOriginalPosition(deviceId, partIndex) {
+            // Әр құрылғы үшін бастапқы позициялар
+            const positions = {
+                mouse: [
+                    {x: -0.5, y: 0, z: 0},
+                    {x: 0.2, y: 0.1, z: 0.15},
+                    {x: 0.2, y: 0.1, z: -0.15},
+                    {x: -0.7, y: 0.1, z: 0}
+                ],
+                keyboard: [
+                    {x: 0, y: 0, z: 0},
+                    {x: -0.7, y: 0.05, z: 0.2},
+                    {x: -0.5, y: 0.05, z: 0.2},
+                    {x: 0, y: 0.05, z: 0}
+                ]
+            };
+            
+            return positions[deviceId]?.[partIndex] || {x: 0, y: 0, z: 0};
+        }
+
+        // Бөлік ақпаратын көрсету
+        function showPartInfo(partName) {
+            const partInfo = {
+                'left-button': 'Сол батырма: Негізгі таңдау батырмасы',
+                'right-button': 'Оң батырма: Контекстік мәзірді ашады',
+                'scroll-wheel': 'Скролл доңғалағы: Бетті төмен-жоғары жылжыту',
+                'laser': 'Лазер нүктесі: Курсордың экрандағы орнын анықтайды'
+            };
+            
+            alert(partInfo[partName] || `Бөлік ақпараты: ${partName}`);
+        }
+
+        // Демонстрацияны ойнату
+        function playDemo() {
+            const model = document.getElementById(`${currentDevice}-model`);
+            if (!model) return;
+            
+            // Құрылғыға байланысты демо анимация
+            if (currentDevice === 'mouse') {
+                // Тінтуір демо
+                const cursor = document.createElement('a-entity');
+                cursor.setAttribute('geometry', 'primitive: sphere; radius: 0.02');
+                cursor.setAttribute('material', 'color: #FF0000');
+                cursor.setAttribute('position', '0 1.5 -2');
+                cursor.setAttribute('animation', 'property: position; dir: alternate; dur: 2000; loop: true; to: 1 1.5 -2');
+                document.querySelector('a-scene').appendChild(cursor);
+                
+                setTimeout(() => {
+                    document.querySelector('a-scene').removeChild(cursor);
+                }, 2000);
+                
+            } else if (currentDevice === 'keyboard') {
+                // Пернетақта демо
+                const keys = model.querySelectorAll('.key');
+                keys.forEach((key, index) => {
+                    setTimeout(() => {
+                        key.setAttribute('animation__click', 'property: position; to: ' + 
+                            key.getAttribute('position').x + ' 0.03 ' + 
+                            key.getAttribute('position').z + '; dur: 100; startEvents: click');
+                        key.emit('click');
+                        
+                        setTimeout(() => {
+                            key.setAttribute('animation__click', 'property: position; to: ' + 
+                                key.getAttribute('position').x + ' 0.05 ' + 
+                                key.getAttribute('position').z + '; dur: 100');
+                        }, 100);
+                    }, index * 200);
+                });
+            }
+            
+            alert('Демонстрация ойнатылуда...');
+        }
+
+        // Тест жауаптарын таңдау
+        function selectAnswer(element, answerIndex) {
+            const question = element.closest('.question');
+            question.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            
+            const questionIndex = Array.from(document.querySelectorAll('.question')).indexOf(question);
+            testAnswers[questionIndex] = answerIndex;
+        }
+
+        // Тестті аяқтау
+        function submitTest() {
+            const totalQuestions = document.querySelectorAll('.question').length;
+            const correctAnswers = [1]; // Дұрыс жауаптар
+            let score = 0;
+            
+            for (let i = 0; i < totalQuestions; i++) {
+                if (testAnswers[i] === correctAnswers[i]) {
+                    score++;
+                }
+            }
+            
+            alert(`Тест аяқталды! Сіз ${score}/${totalQuestions} дұрыс жауап бердіңіз.`);
+            document.getElementById('test-section').style.display = 'none';
+        }
+
+        // Бастапқы инициализация
+        window.onload = function() {
+            update3DModel('mouse');
+            
+            // VR режимінің қолжетімділігін тексеру
+            if (navigator.xr) {
+                navigator.xr.isSessionSupported('immersive-vr').then(supported => {
+                    if (supported) {
+                        console.log('VR режимі қолдау көрсетілген');
+                    }
+                });
+            }
+        };
+
+        // AFrame компоненттері
+        AFRAME.registerComponent('highlight-button', {
+            init: function() {
+                this.el.addEventListener('mouseenter', () => {
+                    this.el.setAttribute('material', 'color', '#FF0000');
+                });
+                this.el.addEventListener('mouseleave', () => {
+                    this.el.setAttribute('material', 'color', '#333333');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
